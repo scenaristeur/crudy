@@ -1,6 +1,7 @@
 import { input } from '@inquirer/prompts';
 import { Command } from 'commander';
 import { FileSystem } from './lib/FileSystem.js';
+import { DataManager } from './lib/DataManager.js';
 
 const program = new Command();
 
@@ -36,7 +37,7 @@ program
   .version('0.0.1');
 
 program
-  .option('-b, --base <location>', 'specify the base path, local like "~/crudy" or a remote Solid POD like "https://academy-cdr.solidcommunity.net/public/"', process.env.HOME+'/crudy_base/');
+  .option('-b, --base <location>', 'specify the base path, local like "~/crudy" or a remote Solid POD like "https://academy-cdr.solidcommunity.net/public/"', process.env.HOME + '/crudy_base/');
 
 // program.command('split')
 // .description('Split a string into substrings and display as an array')
@@ -54,6 +55,7 @@ console.log("CRUDY", "'exit' to quit")
 
 const init = async (cv) => {
   cv.fs = new FileSystem({ path: cv.options.base })
+  cv.dm = new DataManager(cv)
 }
 
 const process_input = async (cv) => {
@@ -69,14 +71,19 @@ const process_input = async (cv) => {
     case "ls":
     case "touch":
     case "cd":
-      case "rm":
+    case "rm":
+    case "use":
+    case "echo":
       result = await cv.fs[cmd](cv)
-      console.log(result)
-
+      // console.log(result)
       break;
-
     default:
-      console.log("NOT IMPLEMENTED YET")
+      // console.log("NOT IMPLEMENTED YET")
+      if (cv.fs.currentFilename != undefined) {
+        result = await cv.dm.execute(cv)
+      } else {
+        console.log("You must first define a file/db with 'use xxx' command, you can show avaailable with ls or create with 'touch my_db'")
+      }
       break;
   }
 
