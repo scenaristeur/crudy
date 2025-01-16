@@ -8,7 +8,7 @@ let cv =  {
   debug: true,
   crudy_admin_path: "~./crudy/",
   prompt: 'crudy>',
-  answer: null,
+  input: null,
   history: [],
   options: null
 }
@@ -47,25 +47,48 @@ program
 // });
 
 program.parse();
-
 cv.options = program.opts();
-
 console.log("CRUDY", "'exit' to quit")
 
-if (cv.debug == true) {
-  console.log(cv)
 
+
+
+const process_input = async (input) =>{
+let status = 200  
+let inputArray = input.trim().split(/\s+/); // split multi-spaces https://bobbyhadz.com/blog/javascript-split-string-multiple-spaces
+if (cv.debug == true) {
+  console.log(inputArray)
+}
+
+
+
+
+let message = "unknown"
+switch (status) {
+  case 200:
+    message = 'OK'
+    break;
+
+  default:
+    break;
+}
+  return {status: status, message: message, input:input, inputArray:inputArray}
 }
 
 const main = async () => {
-  while (cv.answer != "exit") {
-    cv.answer = await input({ message: cv.prompt });
-    console.log(cv.answer)
-    cv.history.push({ "cmd": cv.answer, "ts": Date.now() })
+  while (cv.input != "exit") {
+    cv.input = await input({ message: cv.prompt });
+    console.log(cv.input)
+    cv.history.push({ "cmd": cv.input, "ts": Date.now() })
+    cv.output = await process_input(cv.input)
+    console.log(">>",cv.output ) 
   }
 
-  console.log(cv.history)
-
+  if (cv.debug == true) {
+    console.log(cv)
+  }
 }
 
 main()
+
+
