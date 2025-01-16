@@ -69,12 +69,14 @@ const process_input = async (cv) => {
     case "ls":
     case "touch":
     case "cd":
+      case "rm":
       result = await cv.fs[cmd](cv)
       console.log(result)
 
       break;
 
     default:
+      console.log("NOT IMPLEMENTED YET")
       break;
   }
 
