@@ -1,10 +1,15 @@
 import { input } from '@inquirer/prompts';
 import { Command } from 'commander';
+import { FileSystem } from './lib/FileSystem.js';
+
 const program = new Command();
 
-// crudy vars
-let cv =  {
+// COMMANDES
+// [ ] debug, show cv variables
+// [ ] ls
 
+// crudy vars
+let cv = {
   debug: true,
   crudy_admin_path: "~./crudy/",
   prompt: 'crudy>',
@@ -12,9 +17,6 @@ let cv =  {
   history: [],
   options: null
 }
-
-
-
 
 // cli gestion
 process.stdout.write("\u001b[2J\u001b[0;0H");
@@ -30,11 +32,11 @@ process.on('uncaughtException', (error) => {
 // commander
 program
   .name('crudy')
-  .description('CLI to some JavaScript string utilities')
-  .version('0.8.0');
+  .description('CRUDY is the json and yaml CRUD.')
+  .version('0.0.1');
 
 program
-  .option('-b, --base <location>', 'specify the base path, local like "~/crudy" or remote like "https://academy-cdr.solidcommunity.net/public/"', '~/crudy/');
+  .option('-b, --base <location>', 'specify the base path, local like "~/crudy" or a remote Solid POD like "https://academy-cdr.solidcommunity.net/public/"', process.env.HOME+'/crudy_base/');
 
 // program.command('split')
 // .description('Split a string into substrings and display as an array')
@@ -50,45 +52,66 @@ program.parse();
 cv.options = program.opts();
 console.log("CRUDY", "'exit' to quit")
 
-
-
-
-const process_input = async (input) =>{
-let status = 200  
-let inputArray = input.trim().split(/\s+/); // split multi-spaces https://bobbyhadz.com/blog/javascript-split-string-multiple-spaces
-if (cv.debug == true) {
-  console.log(inputArray)
+const init = async (cv) => {
+  cv.fs = new FileSystem({ path: cv.options.base })
 }
 
+const process_input = async (cv) => {
+  let status = 200
+
+  cv.inputArray = cv.input.trim().split(/\s+/); // split multi-spaces https://bobbyhadz.com/blog/javascript-split-string-multiple-spaces
+  if (cv.debug == true) {
+    console.log(cv.inputArray)
+  }
+  let cmd = cv.inputArray[0]
+  let result = null
+  switch (cmd) {
+    case "ls":
+    case "touch":
+    case "cd":
+      result = await cv.fs[cmd](cv)
+      console.log(result)
+
+      break;
+
+    default:
+      break;
+  }
 
 
 
-let message = "unknown"
-switch (status) {
-  case 200:
-    message = 'OK'
-    break;
-
-  default:
-    break;
+  let message = "unknown"
+  switch (status) {
+    case 200:
+      message = 'OK'
+      break;
+    default:
+      break;
+  }
+  let output = { status: status, message: message, input: cv.input, inputArray: cv.inputArray, result: result }
+  if (cv.debug == true) {
+    console.log(output)
+  }
+  return output
 }
-  return {status: status, message: message, input:input, inputArray:inputArray}
-}
 
-const main = async () => {
+const main = async (cv) => {
   while (cv.input != "exit") {
     cv.input = await input({ message: cv.prompt });
     console.log(cv.input)
+    if (cv.input == "debug") {
+      console.log(cv)
+    }
     cv.history.push({ "cmd": cv.input, "ts": Date.now() })
-    cv.output = await process_input(cv.input)
-    console.log(">>",cv.output ) 
+    cv.output = await process_input(cv)
+    console.log(">>[" + cv.output.message + "] " + cv.output.input)
   }
-
   if (cv.debug == true) {
     console.log(cv)
   }
 }
 
-main()
+init(cv)
+main(cv)
 
 
