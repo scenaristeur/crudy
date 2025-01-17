@@ -42,6 +42,10 @@ The json/yaml crud
 "preevent"
 
 
+ jq ".cpanelresult.apiversion" cpanel.json 
+ jq ".cpanelresult.postevent" cpanel.json 
+ jq ".cpanelresult.postevent.result=4" cpanel.json 
+
 ```
 
 
