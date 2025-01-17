@@ -1,3 +1,4 @@
+import fs from 'fs'
 import { input } from '@inquirer/prompts';
 import { Command } from 'commander';
 import { FileSystem } from './lib/FileSystem.js';
@@ -8,15 +9,16 @@ const program = new Command();
 // COMMANDES
 // [ ] debug, show cv variables
 // [ ] ls
-
+console.log(process.env.HOME)
 // crudy vars
 let cv = {
   debug: true,
-  crudy_admin_path: "~./crudy/",
-  prompt: 'crudy>',
+  crudy_admin_path: process.env.HOME + "/.crudy/",
+  core_prompt: 'crud',
   input: null,
   history: [],
-  options: null
+  options: null,
+  base: []
 }
 
 // cli gestion
@@ -30,6 +32,24 @@ process.on('uncaughtException', (error) => {
   }
 });
 
+try {
+  let lb_filename = cv.crudy_admin_path + 'last_base.json'
+  if (!fs.existsSync(cv.crudy_admin_path)) {
+    fs.mkdirSync(cv.crudy_admin_path)
+  }
+  if (fs.existsSync(lb_filename)) {
+    let last_base = await fs.readFileSync(lb_filename, 'utf8');
+    console.log("last_base", last_base)
+    if (last_base != undefined) {
+      cv.base = JSON.parse(last_base)
+    }
+  }
+
+} catch (e) {
+  console.log(e)
+}
+
+
 // commander
 program
   .name('crudy')
@@ -37,8 +57,8 @@ program
   .version('0.0.1');
 
 program
-  .option('-b, --base <location>', 'specify the base path, local like "~/crudy" or a remote Solid POD like "https://academy-cdr.solidcommunity.net/public/"', process.env.HOME + '/crudy_base/');
-
+  .option('-p, --path <location>', 'specify the path path, local like "~/crudy/data" or a remote Solid POD like "https://academy-cdr.solidcommunity.net/public/"', process.env.HOME + '/crudy/data/')
+  .option('-b, --base <base>', 'the db that you want to use, can be a file or a folder in the path', "default")
 // program.command('split')
 // .description('Split a string into substrings and display as an array')
 // .argument('<string>', 'string to split')
@@ -54,7 +74,7 @@ cv.options = program.opts();
 console.log("CRUDY", "'exit' to quit")
 
 const init = async (cv) => {
-  cv.fs = new FileSystem({ path: cv.options.base })
+  cv.fs = new FileSystem({ path: cv.options.path })
   cv.dm = new DataManager(cv)
 }
 
@@ -103,10 +123,26 @@ const process_input = async (cv) => {
   }
   return output
 }
+const inq_prompt = (cv) => {
+  let p = cv.core_prompt
+  p += "["
+  p += cv.base[0]
+  p += "]"
+  p += "> "
+  return p
+}
+
+const saveCvLastBase = async (cv) => {
+  try {
+    await fs.writeFileSync(cv.crudy_admin_path + 'last_base.json', JSON.stringify(cv.base), 'utf8');
+  } catch (e) { console.log(e) }
+}
+
 
 const main = async (cv) => {
   while (cv.input != "exit") {
-    cv.input = await input({ message: cv.prompt });
+
+    cv.input = await input({ message: inq_prompt(cv) });
     console.log(cv.input)
     if (cv.input == "debug") {
       console.log(cv)
@@ -114,6 +150,7 @@ const main = async (cv) => {
     cv.history.push({ "cmd": cv.input, "ts": Date.now() })
     cv.output = await process_input(cv)
     console.log(">>[" + cv.output.message + "] " + cv.output.input)
+    saveCvLastBase(cv)
   }
   if (cv.debug == true) {
     console.log(cv)
