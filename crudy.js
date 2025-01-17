@@ -99,7 +99,7 @@ const process_input = async (cv) => {
       break;
     default:
       // console.log("NOT IMPLEMENTED YET")
-      if (cv.fs.currentFilename != undefined) {
+      if (cv.base[0]  != undefined) {
         result = await cv.dm.execute(cv)
       } else {
         console.log("You must first define a file/db with 'use xxx' command, you can show avaailable with ls or create with 'touch my_db'")

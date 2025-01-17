@@ -23,6 +23,28 @@ The json/yaml crud
 
 
 # jq
+
+```
+# fichiers dans /examples # example : obtenir les clés
+
+
+~/crudy/data$ jq ". | keys[]" cpanel.json 
+"cpanelresult"
+
+
+~/crudy/data$ jq ".cpanelresult | keys[]" cpanel.json 
+"apiversion"
+"data"
+"event"
+"func"
+"module"
+"postevent"
+"preevent"
+
+
+```
+
+
 - https://www.npmjs.com/package/@jq-tools/jq
 - https://www.npmjs.com/package/node-jq
 - ? pas de source https://www.npmjs.com/package/@elastic/micro-jq
