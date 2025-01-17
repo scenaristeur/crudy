@@ -15,6 +15,10 @@ The json/yaml crud
  for further operations
 - [ ] cd
 - [ ] echo
+- [X] type
+- [X] cat   
+
+
 ## json
 
 - [ ] get  user.name
@@ -47,6 +51,8 @@ The json/yaml crud
  jq ".cpanelresult.postevent.result=4" cpanel.json 
 
 ```
+
+sudo ln -s /bin/jq /home/user/dev/crudy/node_modules/node-jq/bin/jq
 
 
 - https://www.npmjs.com/package/@jq-tools/jq
